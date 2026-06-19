@@ -1,280 +1,445 @@
 <title>Budget Dashboard</title>
 <style>
 :root {
-  --ground:  #EDE9E1;
-  --card:    #FFFFFF;
-  --text:    #1A1816;
-  --text-2:  #6B6257;
-  --border:  #DDD8CF;
-  --accent:  #9B7B3F;
-  --a-light: #F5EDD8;
-  --green:   #4A6B4A;
-  --g-light: #EAF2EA;
-  --rust:    #7D3F2E;
-  --r-light: #F9EAE6;
-  --progress:#C4913B;
-  --p-done:  #4A6B4A;
-  --p-empty: #E2DDD5;
-  --radius:  10px;
+  --bg:       #E9E8E4;
+  --surface:  #F3F2EF;
+  --sidebar:  #FFFFFF;
+  --card:     #FFFFFF;
+  --border:   rgba(0,0,0,0.08);
+  --border-h: rgba(0,0,0,0.16);
+  --text:     #1C1C1A;
+  --text-2:   #8B8B86;
+
+  --coral:    #E25C3A;
+  --coral-d:  #C9492B;
+  --ink:      #1C1C1A;
+
+  --indigo:   #E25C3A;
+  --teal:     #E2613F;
+  --green:    #3F9A63;
+  --amber:    #E8895C;
+  --rose:     #D9483B;
+  --purple:   #E25C3A;
+
+  /* legacy aliases */
+  --accent:   #E25C3A;
+  --a-light:  rgba(226,92,58,0.10);
+  --g-light:  rgba(63,154,99,0.12);
+  --g-dim:    rgba(63,154,99,0.12);
+  --rust:     #D9483B;
+  --r-light:  rgba(217,72,59,0.10);
+  --r-dim:    rgba(217,72,59,0.10);
+  --progress: #E25C3A;
+  --p-done:   #3F9A63;
+  --p-empty:  rgba(0,0,0,0.07);
+  --ground:   #F3F2EF;
+
+  --radius:   16px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: system-ui, -apple-system, 'Helvetica Neue', sans-serif;
-  background: var(--ground);
+  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  padding: 32px 28px 56px;
   font-size: 14px;
   line-height: 1.5;
 }
 
+/* ── APP SHELL ── */
+.app { display: flex; min-height: 100vh; }
+.main { flex: 1; min-width: 0; padding: 28px 28px 56px; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 232px; flex-shrink: 0;
+  background: #12362B;
+  border-right: none;
+  padding: 26px 16px;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; align-self: flex-start; height: 100vh;
+}
+.brand {
+  display: flex; align-items: center; gap: 11px;
+  padding: 0 10px; margin-bottom: 26px;
+}
+.brand-logo {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  background: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  color: #FFFFFF; font-weight: 800; font-size: 16px;
+}
+.brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.03em; }
+.nav-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: rgba(255,255,255,0.55); padding: 0 12px; margin: 16px 0 8px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 12px; border-radius: 9px; margin-bottom: 2px;
+  font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.82);
+  text-decoration: none; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-item:hover { background: rgba(255,255,255,0.12); color: #FFFFFF; }
+.nav-item.active {
+  background: #FFFFFF; color: #12362B; font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+}
+.nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+.nav-item .ext { margin-left: auto; opacity: 0.5; width: 13px; height: 13px; }
+.nav-spacer { flex: 1; }
+
 /* ── HEADER ── */
 .hdr {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+  margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
 }
-.hdr-title { font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
-.hdr-date  { font-size: 12px; color: var(--text-2); letter-spacing: 0.02em; }
+.hdr-title {
+  grid-column: 2; text-align: center;
+  font-size: 27px; font-weight: 700; letter-spacing: -0.04em;
+  background: linear-gradient(120deg, var(--text) 30%, var(--text-2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hdr-date { grid-column: 3; text-align: right; font-size: 12px; color: var(--text-2); letter-spacing: 0.02em; }
 
-/* ── STATS STRIP ── */
+/* ── STATS ── */
 .stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin-bottom: 20px;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px;
 }
-.stat-cell { background: var(--card); padding: 16px 20px; }
+.stat-cell {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 22px;
+  border-left: 3px solid var(--indigo);
+}
+.stat-cell:nth-child(2) { border-left-color: var(--amber); }
+.stat-cell:nth-child(3) { border-left-color: var(--teal); }
 .stat-label {
   font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--text-2); margin-bottom: 5px;
+  text-transform: uppercase; color: var(--text-2); margin-bottom: 8px;
 }
 .stat-value {
-  font-size: 26px; font-weight: 600; letter-spacing: -0.03em;
+  font-size: 28px; font-weight: 700; letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums; color: var(--text); line-height: 1;
 }
 .stat-value.pos { color: var(--green); }
-.stat-value.neg { color: var(--rust); }
+.stat-value.neg { color: var(--rose); }
 
 /* ── GRID ── */
-.main-grid   { display: grid; grid-template-columns: 300px 1fr; gap: 16px; margin-bottom: 16px; }
-.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.main-grid   { display: grid; grid-template-columns: 35% 1fr; gap: 16px; margin-bottom: 16px; perspective: 1600px; }
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; perspective: 1600px; }
+#bills-card, #goals-card { transform-style: preserve-3d; backface-visibility: hidden; }
 
 /* ── CARD ── */
 .card {
-  background: var(--card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  padding: 22px 22px 20px;
-  animation: fadein 0.35s ease both;
+  background: var(--card); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 22px 22px 20px;
+  animation: fadein 0.4s ease both;
 }
-@keyframes fadein { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
-.card:nth-of-type(2) { animation-delay: 60ms; }
+@keyframes fadein { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+.card:nth-of-type(2) { animation-delay: 80ms; }
+.card:nth-of-type(3) { animation-delay: 150ms; }
 
 .card-hdr {
   display: flex; align-items: center; justify-content: space-between;
-  padding-bottom: 11px; border-bottom: 1px solid var(--border); margin-bottom: 15px;
+  padding-bottom: 13px; border-bottom: 1px solid var(--border); margin-bottom: 16px;
 }
 .card-title {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.13em;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--text-2);
 }
 .edit-btn {
   font-size: 11px; font-weight: 500; color: var(--text-2);
-  background: none; border: 1px solid var(--border); border-radius: 5px;
+  background: none; border: 1px solid var(--border); border-radius: 6px;
   padding: 3px 10px; cursor: pointer; font-family: inherit;
-  transition: color 0.1s, border-color 0.1s;
+  transition: color 0.15s, border-color 0.15s;
 }
-.edit-btn:hover { color: var(--text); border-color: var(--text-2); }
+.edit-btn:hover { color: var(--text); border-color: var(--border-h); }
 
 /* ── CASH FLOW ── */
 .cf-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 6px 0; border-bottom: 1px solid #F2EEE7; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid var(--border); gap: 8px;
 }
 .cf-row:last-of-type { border-bottom: none; }
-.cf-name  { font-size: 13px; color: var(--text-2); flex: 1; }
-.cf-amt   { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.cf-amt.neg { color: var(--rust); }
+.cf-name { font-size: 13px; color: var(--text-2); flex: 1; }
 .cf-done-badge {
   font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--green); border: 1px solid var(--green); border-radius: 3px;
-  padding: 1px 5px; white-space: nowrap;
+  color: var(--green); border: 1px solid rgba(52,211,153,0.25); border-radius: 4px;
+  padding: 2px 6px; background: var(--g-dim); white-space: nowrap;
 }
-.cf-row.is-done .cf-name { text-decoration: line-through; opacity: 0.38; }
-.cf-row.is-done .cf-amt  { opacity: 0.38; }
+.cf-row.is-done .cf-name { text-decoration: line-through; opacity: 0.28; }
+.cf-row.is-done .inline-input { opacity: 0.28; }
 
 .cf-total-row {
   display: flex; justify-content: space-between; align-items: baseline;
-  padding-top: 12px; margin-top: 8px; border-top: 1.5px solid var(--text);
+  padding-top: 13px; margin-top: 10px;
 }
 .cf-total-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
-  text-transform: uppercase; color: var(--text);
+  font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text-2);
 }
 .cf-total-val {
-  font-size: 24px; font-weight: 700; letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
+  font-size: 26px; font-weight: 700; letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums; color: var(--text);
 }
+.cf-total-val.neg { color: var(--rose); }
 .cf-sub { font-size: 11px; color: var(--text-2); font-style: italic; text-align: right; margin-top: 3px; }
 
-.cf-links { margin-top: 18px; padding-top: 15px; border-top: 1px solid var(--border); }
-.cf-links-label {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--text-2); margin-bottom: 8px;
-}
-.cf-link {
-  display: block; font-size: 12px; color: var(--accent);
-  text-decoration: underline; text-decoration-color: rgba(155,123,63,0.3);
-  margin-bottom: 3px; cursor: pointer;
-}
-.cf-link:hover { text-decoration-color: var(--accent); }
-a.cf-link { }
-
-/* ── BILLS TABLE ── */
+/* ── BILLS ── */
 .bills-tbl { width: 100%; border-collapse: collapse; }
 .bills-tbl th {
   font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text-2); text-align: left; padding: 0 8px 9px;
+  color: var(--text-2); text-align: left; padding: 0 8px 10px;
   border-bottom: 1px solid var(--border);
 }
 .bills-tbl th.r { text-align: right; }
 .bills-tbl td {
-  padding: 7px 8px; font-size: 13px;
-  border-bottom: 1px solid #F2EEE7; vertical-align: middle;
+  padding: 8px; font-size: 13px;
+  border-bottom: 1px solid var(--border); vertical-align: middle;
 }
 .bills-tbl tbody tr:last-child td { border-bottom: none; }
+.bills-tbl tbody tr:hover td { background: rgba(0,0,0,0.025); }
 .bills-tbl td.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bills-tbl tfoot td {
-  font-weight: 600; border-top: 1px solid var(--border); border-bottom: none;
-  padding-top: 10px; font-size: 13px;
+  font-weight: 700; border-top: 1px solid var(--border-h); border-bottom: none; padding-top: 10px;
 }
 .type-pill {
   display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; padding: 2px 7px; border-radius: 3px;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
 }
-.type-manual  { background: var(--a-light); color: var(--accent); }
+.type-manual  { background: var(--a-light); color: var(--indigo); }
 .type-autopay { background: var(--g-light); color: var(--green); }
-.bill-note    { font-size: 10px; color: var(--text-2); font-style: italic; margin-left: 5px; }
+.bill-note { font-size: 10px; color: var(--text-2); font-style: italic; margin-left: 5px; }
 
-/* ── GOALS ── */
-.goal-item { margin-bottom: 17px; }
-.goal-item:last-child { margin-bottom: 0; }
-.goal-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
-.goal-name { font-size: 13px; font-weight: 500; }
-.goal-name.done { text-decoration: line-through; opacity: 0.35; }
-.goal-pct { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-2); }
-.goal-track { height: 5px; background: var(--p-empty); border-radius: 2px; overflow: hidden; margin-bottom: 5px; }
-.goal-fill {
-  height: 100%; border-radius: 2px;
-  transition: width 0.85s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 0%;
+/* ── GOALS DONUT ── */
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 26px 16px;
+  align-items: start;
 }
-.fill-done    { background: var(--p-done); }
-.fill-partial { background: var(--progress); }
-.fill-empty   { background: var(--p-empty); }
-.goal-meta {
-  display: flex; justify-content: space-between;
-  font-size: 11px; color: var(--text-2); font-variant-numeric: tabular-nums;
+.goal-donut-item { text-align: center; }
+.donut-wrap {
+  position: relative; width: 100%; max-width: 150px; aspect-ratio: 1;
+  margin: 0 auto 12px;
 }
-.goal-complete { color: var(--green); }
+.donut-wrap svg { width: 100%; height: 100%; }
+.donut-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%); text-align: center; pointer-events: none;
+}
+.donut-pct { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.donut-name {
+  font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3;
+  min-height: 30px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 7px;
+}
+.donut-rows {
+  display: flex; flex-direction: column; gap: 3px;
+  margin-top: 8px; padding: 0 4px;
+}
+.donut-row {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; gap: 6px;
+}
+.donut-row-label { color: var(--text-2); font-weight: 600; }
+.donut-row-val   { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+.donut-row .amt-field { font-weight: 600; padding: 2px 7px; border-radius: 6px; }
+.donut-row .amt-sign  { font-size: 11px; }
 
 /* ── CALENDAR ── */
 .cal-row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 7px 0; border-bottom: 1px solid #F2EEE7;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
 }
 .cal-row:last-of-type { border-bottom: none; }
 .cal-label { font-size: 13px; color: var(--text-2); }
-.cal-val   { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.cal-val   { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .cal-highlight {
-  margin-top: 16px; padding: 16px 18px;
-  background: var(--a-light); border-radius: 8px;
-  border-left: 3px solid var(--accent);
+  margin-top: 18px; padding: 18px 20px; background: rgba(226,92,58,0.09);
+  border-radius: 10px; border-left: 3px solid var(--accent);
   display: flex; justify-content: space-between; align-items: center;
 }
-.cal-highlight.is-neg { background: var(--r-light); border-left-color: var(--rust); }
+.cal-highlight.is-neg { background: var(--r-dim); border-left-color: var(--rose); }
 .cal-hl-label {
   font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--accent);
 }
-.cal-highlight.is-neg .cal-hl-label { color: var(--rust); }
+.cal-highlight.is-neg .cal-hl-label { color: var(--rose); }
 .cal-hl-val {
-  font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 30px; font-weight: 700; letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums; color: var(--accent);
 }
-.cal-highlight.is-neg .cal-hl-val { color: var(--rust); }
+.cal-highlight.is-neg .cal-hl-val { color: var(--rose); }
 
 /* ── EDIT MODE ── */
 .e-input {
-  border: 1px solid var(--border); border-radius: 5px;
-  padding: 4px 8px; font-size: 13px; font-family: inherit;
-  background: var(--ground); color: var(--text); width: 100%;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 8px; font-size: 13px; font-family: inherit;
+  background: var(--surface); color: var(--text); width: 100%;
   transition: border-color 0.1s;
 }
 .e-input:focus { outline: none; border-color: var(--accent); }
 .e-select {
-  border: 1px solid var(--border); border-radius: 5px;
-  padding: 4px 8px; font-size: 12px; font-family: inherit;
-  background: var(--ground); color: var(--text); cursor: pointer;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 8px; font-size: 12px; font-family: inherit;
+  background: var(--surface); color: var(--text); cursor: pointer;
 }
 .e-select:focus { outline: none; border-color: var(--accent); }
+.e-money {
+  display: inline-flex; align-items: center; gap: 2px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); padding: 0 8px; width: 96px;
+  transition: border-color 0.1s;
+}
+.e-money:focus-within { border-color: var(--accent); }
+.e-money-sign { font-size: 13px; color: var(--text-2); }
+.e-money-input {
+  border: none; background: none; color: var(--text); font-family: inherit;
+  font-size: 13px; font-variant-numeric: tabular-nums; text-align: right;
+  width: 100%; padding: 5px 0; appearance: textfield; -moz-appearance: textfield;
+}
+.e-money-input:focus { outline: none; }
+.e-money-input::-webkit-outer-spin-button,
+.e-money-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .add-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  background: none; border: 1px dashed var(--border); border-radius: 6px;
-  padding: 7px; font-size: 12px; color: var(--text-2); cursor: pointer;
+  background: none; border: 1px dashed var(--border); border-radius: 8px;
+  padding: 8px; font-size: 12px; color: var(--text-2); cursor: pointer;
   width: 100%; margin-top: 8px; font-family: inherit;
-  transition: border-color 0.1s, color 0.1s;
+  transition: border-color 0.15s, color 0.15s;
 }
 .add-btn:hover { border-color: var(--accent); color: var(--accent); }
 .del-btn {
   background: none; border: none; color: var(--text-2); cursor: pointer;
-  font-size: 17px; line-height: 1; padding: 0 4px; opacity: 0.35; font-family: inherit;
+  font-size: 17px; line-height: 1; padding: 0 4px; opacity: 0.3; font-family: inherit;
   transition: opacity 0.1s;
 }
-.del-btn:hover { opacity: 1; color: var(--rust); }
+.del-btn:hover { opacity: 1; color: var(--rose); }
 .btn-row { display: flex; gap: 8px; margin-top: 14px; }
 .save-btn {
-  background: var(--accent); color: white; border: none;
-  border-radius: 6px; padding: 7px 18px; font-size: 12px; font-weight: 600;
+  background: var(--accent); color: #FFFFFF; border: none;
+  border-radius: 8px; padding: 8px 20px; font-size: 12px; font-weight: 700;
   cursor: pointer; font-family: inherit; transition: opacity 0.1s;
 }
-.save-btn:hover { opacity: 0.84; }
+.save-btn:hover { opacity: 0.82; }
 .cancel-btn {
   background: none; color: var(--text-2); border: 1px solid var(--border);
-  border-radius: 6px; padding: 7px 16px; font-size: 12px;
-  cursor: pointer; font-family: inherit; transition: border-color 0.1s;
+  border-radius: 8px; padding: 8px 16px; font-size: 12px;
+  cursor: pointer; font-family: inherit; transition: border-color 0.15s;
 }
-.cancel-btn:hover { border-color: var(--text-2); color: var(--text); }
+.cancel-btn:hover { border-color: var(--border-h); color: var(--text); }
 .done-toggle {
   font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 3px 7px; border-radius: 3px; border: 1px solid; cursor: pointer;
-  white-space: nowrap; font-family: inherit; background: none;
-  transition: all 0.1s;
+  padding: 3px 8px; border-radius: 4px; border: 1px solid; cursor: pointer;
+  white-space: nowrap; font-family: inherit; background: none; transition: all 0.1s;
+}
+
+/* ── INLINE EDITABLE ── */
+.amt-field {
+  display: inline-flex; align-items: baseline; gap: 1px;
+  color: var(--text);
+  border: 1px solid var(--border-h); border-radius: 7px;
+  background: var(--surface); padding: 4px 9px;
+  cursor: text; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.amt-field:hover { border-color: var(--accent); }
+.amt-field:focus-within {
+  border-color: var(--accent); background: #FFFFFF;
+  box-shadow: 0 0 0 3px var(--a-light);
+}
+.amt-field .amt-sign { font-size: 13px; font-weight: 600; }
+.amt-field.neg { color: var(--rose); }
+.inline-input {
+  border: none; background: transparent;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  font-variant-numeric: tabular-nums; color: inherit;
+  text-align: right; padding: 0; width: 6ch;
+  field-sizing: content; min-width: 2ch; max-width: 110px;
+  appearance: textfield; -moz-appearance: textfield;
+}
+.inline-input::-webkit-outer-spin-button,
+.inline-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.inline-input:focus { outline: none; }
+
+/* ── DONE RADIO ── */
+.done-radio {
+  width: 19px; height: 19px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid var(--border-h); background: none; cursor: pointer;
+  position: relative; padding: 0; font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+.done-radio:hover { border-color: var(--green); }
+.done-radio.on { background: var(--green); border-color: var(--green); }
+.done-radio.on::after {
+  content: '✓'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #FFFFFF;
 }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
+  .app { flex-direction: column; }
+  .sidebar {
+    width: 100%; height: auto; position: static;
+    flex-direction: row; flex-wrap: wrap; align-items: center;
+    gap: 6px; padding: 14px 16px;
+  }
+  .brand { margin-bottom: 0; margin-right: 12px; }
+  .nav-label, .nav-spacer { display: none; }
+  .nav-item { margin-bottom: 0; padding: 8px 12px; }
+  .nav-item .ext { display: none; }
   .main-grid   { grid-template-columns: 1fr; }
   .bottom-grid { grid-template-columns: 1fr; }
   .stats-row   { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .card, .goal-fill { animation: none; transition: none; }
+  .card, .donut-arc { animation: none; transition: none; }
 }
 </style>
 
+<div class="app">
+<aside class="sidebar">
+  <a class="nav-item active" href="#">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </a>
+
+  <div class="nav-label">Resources</div>
+
+  <a class="nav-item" href="https://docs.google.com/document/d/1F_ZdK-zWBo4e_E5BjeQZ3dPidgyiS7r-6I106ji6zws/edit?tab=t.0" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></svg>
+    Prime Directive
+    <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+  </a>
+
+  <a class="nav-item" href="https://walletburst.com/tools/coast-fire-calc/" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M14 10h2M8 14h2M14 14h2M8 18h2M14 18h2"/></svg>
+    CoastFire Calc
+    <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+  </a>
+
+  <a class="nav-item" href="https://www.investor.gov/financial-tools-calculators/calculators/compound-interest-calculator" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M19 9l-5 5-4-4-4 4"/></svg>
+    Compound Interest
+    <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+  </a>
+
+  <a class="nav-item" href="https://digital.fidelity.com/ftgw/pna/customer/pgc/networth/" target="_blank" rel="noopener">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+    Full View
+    <svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+  </a>
+
+  <div class="nav-spacer"></div>
+</aside>
+
+<main class="main">
 <header class="hdr">
-  <div class="hdr-title">Budget Dashboard</div>
+  <div class="hdr-title">Welcome Back, Julian</div>
   <div class="hdr-date" id="hdr-date"></div>
 </header>
 
@@ -288,18 +453,20 @@ a.cf-link { }
     <div class="stat-value" id="stat-goals">—</div>
   </div>
   <div class="stat-cell">
-    <div class="stat-label">Year Remaining</div>
+    <div class="stat-label">Remaining to be Allotted</div>
     <div class="stat-value" id="stat-year">—</div>
   </div>
 </div>
 
 <div class="main-grid">
   <div class="card" id="cf-card"></div>
-  <div class="card" id="bills-card"></div>
+  <div class="card" id="goals-card"></div>
 </div>
 <div class="bottom-grid">
-  <div class="card" id="goals-card"></div>
+  <div class="card" id="bills-card"></div>
   <div class="card" id="cal-card"></div>
+</div>
+</main>
 </div>
 
 <script>
@@ -351,6 +518,8 @@ const DEFAULTS = {
   ],
 };
 
+const GOAL_COLORS = ['#E25C3A','#1C1C1A','#E8895C','#C9492B','#EF9E7E','#B23E22'];
+
 let D = (() => {
   try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : clone(DEFAULTS); }
   catch { return clone(DEFAULTS); }
@@ -367,12 +536,64 @@ function fmt(n) {
   const v = parseFloat(n) || 0;
   return '$' + Math.abs(v).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:2});
 }
+function fmtNum(n) {
+  const v = parseFloat(n) || 0;
+  return v.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:2});
+}
+function parseNum(s) {
+  return parseFloat(String(s).replace(/[^0-9.\-]/g, '')) || 0;
+}
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function fmtDate(iso) {
   try { const [y,m,d] = iso.split('-'); return `${parseInt(m)}/${parseInt(d)}/${y}`; }
   catch { return iso; }
+}
+function fmtDateObj(d) { return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`; }
+
+// ── PAYROLL CALCS ──
+const PAY_ANCHOR = '2026-06-19';  // first biweekly Friday paycheck
+
+function _dateOnly(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function _parseISO(iso) { const [y,m,d] = iso.split('-').map(Number); return new Date(y, m-1, d); }
+function _today() { return _dateOnly(new Date()); }
+
+function nextPayrollDate() {
+  const today = _today();
+  const d = _parseISO(PAY_ANCHOR);
+  while (d <= today) d.setDate(d.getDate() + 14);  // next biweekly Friday after today
+  return d;
+}
+function remainingPaychecks() {
+  const yearEnd = new Date(_today().getFullYear(), 11, 31);  // Dec 31
+  const d = nextPayrollDate();
+  let count = 0;
+  while (d <= yearEnd) { count++; d.setDate(d.getDate() + 14); }
+  return count;
+}
+function calcCal() {
+  const paycheck   = parseFloat(D.calendar.netIncomePerCheck) || 0;
+  const numChecks  = remainingPaychecks();
+  const netIncome  = paycheck * numChecks;
+  const monthsLeft = 12 - _today().getMonth();  // months remaining incl. current month
+  const expenses   = D.bills.reduce((s,b) => s + (parseFloat(b.avgCost)||0), 0) * monthsLeft;
+  return { nextPayroll: nextPayrollDate(), numChecks, paycheck, netIncome, expenses, remaining: netIncome - expenses };
+}
+
+function donutSVG(pct, color, size, stroke) {
+  const r    = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const off  = circ - (pct / 100) * circ;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="display:block">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
+            stroke="rgba(0,0,0,0.08)" stroke-width="${stroke}"/>
+    <circle class="donut-arc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
+            stroke="${color}" stroke-width="${stroke}"
+            stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${circ.toFixed(2)}"
+            stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})"
+            data-offset="${off.toFixed(2)}"/>
+  </svg>`;
 }
 
 // ── STATS ────────────────────────────────────────────────────────────────────
@@ -381,16 +602,13 @@ function updateStats() {
   const billsTotal = D.bills.reduce((s,b) => s + (parseFloat(b.avgCost)||0), 0);
   const goalsTotal = D.goals.length;
   const goalsDone  = D.goals.filter(g => (parseFloat(g.goal)||0) > 0 && (parseFloat(g.current)||0) >= (parseFloat(g.goal)||0)).length;
-  const cal = D.calendar;
-  const netIncome = (parseFloat(cal.numPaychecks)||0) * (parseFloat(cal.netIncomePerCheck)||0);
-  const yearRem   = netIncome - (parseFloat(cal.expectedExpenses)||0);
+  const yearRem    = calcCal().remaining;
 
   document.getElementById('stat-bills').textContent = fmt(billsTotal);
-  const goalsEl = document.getElementById('stat-goals');
-  goalsEl.textContent = goalsDone + ' / ' + goalsTotal;
+  document.getElementById('stat-goals').textContent = goalsDone + ' / ' + goalsTotal;
   const yearEl = document.getElementById('stat-year');
   yearEl.textContent = (yearRem < 0 ? '−' : '') + fmt(yearRem);
-  yearEl.className = 'stat-value ' + (yearRem < 0 ? 'neg' : 'pos');
+  yearEl.className   = 'stat-value ' + (yearRem < 0 ? 'neg' : 'pos');
 }
 
 // ── CASH FLOW ────────────────────────────────────────────────────────────────
@@ -398,127 +616,53 @@ function updateStats() {
 function renderCF() {
   const el = document.getElementById('cf-card');
   if (!el) return;
-  const total = D.cashFlow.reduce((s,i) => s + (parseFloat(i.value)||0), 0);
+  const total     = D.cashFlow.reduce((s,i) => s + (parseFloat(i.value)||0), 0);
   const reimbItem = D.cashFlow.find(i => /reimb/i.test(i.name));
   const reimbVal  = reimbItem ? parseFloat(reimbItem.value)||0 : 0;
   const noReim    = total - reimbVal;
 
-  if (editing.cf) {
-    el.innerHTML = `
-      <div class="card-hdr"><span class="card-title">True Cash Flow</span></div>
-      <div id="cf-rows">
-        ${D.cashFlow.map(item => {
-          const doneStyle = item.done
-            ? `color:var(--green);border-color:var(--green);`
-            : `color:var(--text-2);border-color:var(--border);`;
-          return `
-          <div style="display:grid;grid-template-columns:1fr 100px auto auto;gap:6px;align-items:center;margin-bottom:6px;" data-cf-id="${item.id}">
-            <input class="e-input" data-f="name"  value="${esc(item.name)}"  placeholder="Account">
-            <input class="e-input" type="number" data-f="value" value="${item.value}" style="text-align:right">
-            <button class="done-toggle" style="${doneStyle}" onclick="cfToggleDone(${item.id})">
-              ${item.done ? 'Done ✓' : 'Mark done'}
-            </button>
-            <button class="del-btn" onclick="cfDelete(${item.id})">×</button>
-          </div>`;
-        }).join('')}
-      </div>
-      <button class="add-btn" onclick="cfAdd()">+ Add row</button>
-
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-        <div class="cf-links-label">Calculator Links</div>
-        <div id="cf-link-rows">
-          ${D.links.map(lk => `
-          <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:6px;margin-bottom:6px;" data-lk-id="${lk.id}">
-            <input class="e-input" data-lf="name" value="${esc(lk.name)}" placeholder="Label">
-            <input class="e-input" data-lf="url"  value="${esc(lk.url)}"  placeholder="URL (optional)">
-          </div>`).join('')}
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button class="cancel-btn" onclick="cfCancel()">Cancel</button>
-        <button class="save-btn"   onclick="cfSave()">Save</button>
+  el.innerHTML = `
+    <div class="card-hdr"><span class="card-title">Cash Flow</span></div>
+    ${D.cashFlow.map(item => {
+      const v   = parseFloat(item.value)||0;
+      const neg = v < 0;
+      return `
+      <div class="cf-row ${item.done?'is-done':''}">
+        <button class="done-radio${item.done?' on':''}" onclick="cfToggleDone(${item.id})"
+                title="${item.done?'Mark not done':'Mark done'}" aria-label="toggle done"></button>
+        <span class="cf-name">${esc(item.name)}</span>
+        <span class="amt-field${neg?' neg':''}">
+          <span class="amt-sign">$</span>
+          <input class="inline-input" type="text" inputmode="decimal" value="${fmtNum(item.value)}"
+                 onblur="cfUpdateAmount(${item.id},this.value)" style="width:${fmtNum(item.value).length}ch">
+        </span>
       </div>`;
-  } else {
-    const linksHTML = D.links.filter(l=>l.name).map(l =>
-      l.url
-        ? `<a href="${esc(l.url)}" class="cf-link" target="_blank" rel="noopener">${esc(l.name)}</a>`
-        : `<span class="cf-link" style="opacity:.45;text-decoration:none;cursor:default">${esc(l.name)}</span>`
-    ).join('');
-
-    el.innerHTML = `
-      <div class="card-hdr">
-        <span class="card-title">True Cash Flow</span>
-        <button class="edit-btn" onclick="cfEdit()">Edit</button>
-      </div>
-      ${D.cashFlow.map(item => {
-        const v   = parseFloat(item.value)||0;
-        const neg = v < 0;
-        return `
-        <div class="cf-row ${item.done?'is-done':''}">
-          <span class="cf-name">${esc(item.name)}</span>
-          <span style="display:flex;align-items:center;gap:6px;">
-            <span class="cf-amt ${neg?'neg':''}">${neg?'−':''}${fmt(item.value)}</span>
-            ${item.done ? '<span class="cf-done-badge">Done</span>' : ''}
-          </span>
-        </div>`;
-      }).join('')}
-      <div class="cf-total-row">
-        <span class="cf-total-label">Total Remaining</span>
-        <span class="cf-total-val ${total<0?'neg':''}">${total<0?'−':''}${fmt(total)}</span>
-      </div>
-      ${reimbVal!==0 ? `<div class="cf-sub">excl. ${esc(reimbItem.name)}: ${noReim<0?'−':''}${fmt(noReim)}</div>` : ''}
-      ${linksHTML ? `<div class="cf-links"><div class="cf-links-label">Calculators</div>${linksHTML}</div>` : ''}`;
-  }
+    }).join('')}
+    <div class="cf-total-row">
+      <span class="cf-total-label">Total Remaining</span>
+      <span class="cf-total-val${total<0?' neg':''}">${total<0?'−':''}${fmt(total)}</span>
+    </div>
+    ${reimbVal!==0 ? `<div class="cf-sub">Total without including Rent Reimbursement: ${noReim<0?'−':''}${fmt(noReim)}</div>` : ''}`;
 }
 
-function cfEdit() { editing.cf = true; renderCF(); }
-function cfCancel() { reload(); editing.cf = false; renderCF(); }
-
-function cfSyncEdits() {
-  document.querySelectorAll('#cf-rows [data-cf-id]').forEach(row => {
-    const id   = parseInt(row.dataset.cfId);
-    const item = D.cashFlow.find(i=>i.id===id);
-    if (!item) return;
-    const n = row.querySelector('[data-f="name"]');
-    const v = row.querySelector('[data-f="value"]');
-    if (n) item.name  = n.value;
-    if (v) item.value = parseFloat(v.value)||0;
-  });
-  document.querySelectorAll('#cf-link-rows [data-lk-id]').forEach(row => {
-    const id = parseInt(row.dataset.lkId);
-    const lk = D.links.find(l=>l.id===id);
-    if (!lk) return;
-    const n = row.querySelector('[data-lf="name"]');
-    const u = row.querySelector('[data-lf="url"]');
-    if (n) lk.name = n.value;
-    if (u) lk.url  = u.value;
-  });
+function cfUpdateAmount(id, value) {
+  const item = D.cashFlow.find(i => i.id === id);
+  if (!item) return;
+  item.value = parseNum(value);
+  save(); renderCF(); updateStats();
 }
-
-function cfSave() { cfSyncEdits(); save(); editing.cf = false; renderAll(); }
 
 function cfToggleDone(id) {
-  cfSyncEdits();
-  const item = D.cashFlow.find(i=>i.id===id);
-  if (item) item.done = !item.done;
-  renderCF();
-}
-function cfDelete(id) {
-  cfSyncEdits();
-  D.cashFlow = D.cashFlow.filter(i=>i.id!==id);
-  renderCF();
-}
-function cfAdd() {
-  cfSyncEdits();
-  D.cashFlow.push({id:nextId(D.cashFlow),name:'',value:0,done:false});
-  renderCF();
+  const item = D.cashFlow.find(i => i.id === id);
+  if (!item) return;
+  item.done = !item.done;
+  save(); renderCF();
 }
 
 // ── BILLS ────────────────────────────────────────────────────────────────────
 
 function renderBills() {
-  const el = document.getElementById('bills-card');
+  const el    = document.getElementById('bills-card');
   if (!el) return;
   const total = D.bills.reduce((s,b)=>s+(parseFloat(b.avgCost)||0),0);
 
@@ -527,12 +671,7 @@ function renderBills() {
       <div class="card-hdr"><span class="card-title">Monthly Bills</span></div>
       <div style="overflow-x:auto;">
         <table class="bills-tbl">
-          <thead>
-            <tr>
-              <th>Name</th><th>Account</th><th>Type</th>
-              <th class="r">Avg Cost</th><th>Note</th><th></th>
-            </tr>
-          </thead>
+          <thead><tr><th>Name</th><th>Account</th><th>Type</th><th class="r">Avg Cost</th><th>Note</th><th></th></tr></thead>
           <tbody id="bills-rows">
             ${D.bills.map(b=>`
             <tr data-bill-id="${b.id}">
@@ -544,7 +683,7 @@ function renderBills() {
                   <option value="Autopay" ${b.type==='Autopay'?'selected':''}>Autopay</option>
                 </select>
               </td>
-              <td><input class="e-input" type="number" data-f="avgCost" value="${b.avgCost}" style="text-align:right;width:80px"></td>
+              <td class="r"><span class="e-money"><span class="e-money-sign">$</span><input class="e-money-input" type="text" inputmode="decimal" data-f="avgCost" value="${fmtNum(b.avgCost)}"></span></td>
               <td><input class="e-input" data-f="note" value="${esc(b.note||'')}" placeholder="e.g. Paid annually" style="font-size:11px"></td>
               <td><button class="del-btn" onclick="billDelete(${b.id})">×</button></td>
             </tr>`).join('')}
@@ -564,11 +703,7 @@ function renderBills() {
       </div>
       <div style="overflow-x:auto;">
         <table class="bills-tbl">
-          <thead>
-            <tr>
-              <th>Name</th><th>Account</th><th>Type</th><th class="r">Average Cost</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Name</th><th>Account</th><th>Type</th><th class="r">Average Cost</th></tr></thead>
           <tbody>
             ${D.bills.map(b=>`
             <tr>
@@ -579,18 +714,30 @@ function renderBills() {
             </tr>`).join('')}
           </tbody>
           <tfoot>
-            <tr>
-              <td colspan="3"><strong>Total</strong></td>
-              <td class="r"><strong>${fmt(total)}</strong></td>
-            </tr>
+            <tr><td colspan="3">Total</td><td class="r">${fmt(total)}</td></tr>
           </tfoot>
         </table>
       </div>`;
   }
 }
 
-function billEdit()   { editing.bills = true; renderBills(); }
-function billCancel() { reload(); editing.bills = false; renderBills(); }
+function flipCard(cardId, updateFn) {
+  const card = document.getElementById(cardId);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!card || reduce) { updateFn(); return; }
+  card.style.transition = 'transform 0.2s ease-in';
+  card.style.transform  = 'rotateY(90deg)';
+  setTimeout(() => {
+    updateFn();
+    card.style.transition = 'transform 0.2s ease-out';
+    card.style.transform  = 'rotateY(0deg)';
+    setTimeout(() => { card.style.transition = ''; card.style.transform = ''; }, 220);
+  }, 200);
+}
+function flipBills(updateFn) { flipCard('bills-card', updateFn); }
+
+function billEdit()   { flipBills(() => { editing.bills = true;  renderBills(); }); }
+function billCancel() { flipBills(() => { reload(); editing.bills = false; renderBills(); }); }
 
 function billSyncEdits() {
   document.querySelectorAll('#bills-rows tr[data-bill-id]').forEach(row => {
@@ -599,16 +746,12 @@ function billSyncEdits() {
     if (!bill) return;
     row.querySelectorAll('[data-f]').forEach(el => {
       const f = el.dataset.f;
-      bill[f] = f==='avgCost' ? (parseFloat(el.value)||0) : el.value;
+      bill[f] = f==='avgCost' ? parseNum(el.value) : el.value;
     });
   });
 }
-function billSave()   { billSyncEdits(); save(); editing.bills = false; renderAll(); }
-function billDelete(id) {
-  billSyncEdits();
-  D.bills = D.bills.filter(b=>b.id!==id);
-  renderBills();
-}
+function billSave() { billSyncEdits(); save(); flipBills(() => { editing.bills = false; renderBills(); updateStats(); }); }
+function billDelete(id) { billSyncEdits(); D.bills = D.bills.filter(b=>b.id!==id); renderBills(); }
 function billAdd() {
   billSyncEdits();
   D.bills.push({id:nextId(D.bills),name:'',account:'',type:'Manual',avgCost:0,note:''});
@@ -617,98 +760,117 @@ function billAdd() {
 
 // ── GOALS ────────────────────────────────────────────────────────────────────
 
+function goalIsDone(g) {
+  const curr = parseFloat(g.current)||0, tgt = parseFloat(g.goal)||0;
+  return tgt > 0 && curr >= tgt;
+}
+
 function renderGoals() {
   const el = document.getElementById('goals-card');
   if (!el) return;
 
   if (editing.goals) {
     el.innerHTML = `
-      <div class="card-hdr"><span class="card-title">Prime Directive — Goals</span></div>
-      <div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);
-                  display:grid;grid-template-columns:1fr 90px 90px auto auto;gap:6px;margin-bottom:6px;padding:0 2px;">
-        <span>Goal</span><span style="text-align:right">Current</span>
-        <span style="text-align:right">Target</span><span></span><span></span>
-      </div>
-      <div id="goals-rows">
-        ${D.goals.map(g=>`
-        <div data-goal-id="${g.id}"
-             style="display:grid;grid-template-columns:1fr 90px 90px auto auto;gap:6px;align-items:center;margin-bottom:8px;">
-          <input class="e-input" data-f="name"    value="${esc(g.name)}" placeholder="Goal name">
-          <input class="e-input" type="number" data-f="current" value="${g.current}" style="text-align:right">
-          <input class="e-input" type="number" data-f="goal"    value="${g.goal}"    style="text-align:right">
-          <label style="font-size:11px;color:var(--text-2);white-space:nowrap;cursor:pointer;
-                        display:flex;align-items:center;gap:4px;">
-            <input type="checkbox" data-f="completed" ${g.completed?'checked':''}> Done
-          </label>
-          <button class="del-btn" onclick="goalDelete(${g.id})">×</button>
-        </div>`).join('')}
+      <div class="card-hdr"><span class="card-title">2026 Goals</span></div>
+      <div style="overflow-x:auto;">
+        <table class="bills-tbl">
+          <thead><tr><th>Goal</th><th class="r">Target</th><th></th></tr></thead>
+          <tbody id="goals-rows">
+            ${D.goals.map(g=>`
+            <tr data-goal-id="${g.id}">
+              <td><input class="e-input" data-f="name" value="${esc(g.name)}" placeholder="Goal name"></td>
+              <td class="r"><span class="e-money"><span class="e-money-sign">$</span><input class="e-money-input" type="text" inputmode="decimal" data-f="goal" value="${fmtNum(g.goal)}"></span></td>
+              <td><button class="del-btn" onclick="goalDelete(${g.id})">×</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
       </div>
       <button class="add-btn" onclick="goalAdd()">+ Add goal</button>
       <div class="btn-row">
         <button class="cancel-btn" onclick="goalCancel()">Cancel</button>
         <button class="save-btn"   onclick="goalSave()">Save</button>
       </div>`;
-  } else {
-    el.innerHTML = `
-      <div class="card-hdr">
-        <span class="card-title">Prime Directive — Goals</span>
-        <button class="edit-btn" onclick="goalEdit()">Edit</button>
-      </div>
-      ${D.goals.map(g => {
-        const curr = parseFloat(g.current)||0;
-        const tgt  = parseFloat(g.goal)||0;
-        const pct  = tgt > 0 ? Math.min(100, Math.round(curr/tgt*100)) : 0;
-        const rem  = Math.max(0, tgt - curr);
+    return;
+  }
+
+  // Display: incomplete goals first, completed shifted to the far right
+  const ordered = D.goals
+    .map((g, i) => ({g, i}))
+    .sort((a, b) => (goalIsDone(a.g) - goalIsDone(b.g)) || (a.i - b.i));
+
+  el.innerHTML = `
+    <div class="card-hdr">
+      <span class="card-title">2026 Goals</span>
+      <button class="edit-btn" onclick="goalEdit()">Edit</button>
+    </div>
+    <div class="goals-grid">
+      ${ordered.map(({g, i}) => {
+        const curr   = parseFloat(g.current)||0;
+        const tgt    = parseFloat(g.goal)||0;
+        const pct    = tgt > 0 ? Math.min(100, Math.round(curr/tgt*100)) : 0;
         const isDone = pct >= 100;
-        const fillCls = isDone ? 'fill-done' : (pct > 0 ? 'fill-partial' : 'fill-empty');
+        const color  = isDone ? '#3F9A63' : GOAL_COLORS[i % GOAL_COLORS.length];
         return `
-        <div class="goal-item">
-          <div class="goal-hdr">
-            <span class="goal-name ${g.completed?'done':''}">${esc(g.name)}</span>
-            <span class="goal-pct">${pct}%</span>
+        <div class="goal-donut-item">
+          <div class="donut-wrap">
+            ${donutSVG(pct, color, 150, 15)}
+            <div class="donut-center">
+              <div class="donut-pct" style="color:${color}">${pct}%</div>
+            </div>
           </div>
-          <div class="goal-track">
-            <div class="goal-fill ${fillCls}" style="width:0%" data-target="${pct}"></div>
-          </div>
-          <div class="goal-meta">
-            <span>${fmt(curr)} / ${fmt(tgt)}</span>
-            ${rem > 0
-              ? `<span>${fmt(rem)} remaining</span>`
-              : '<span class="goal-complete">Complete</span>'}
+          <div class="donut-name">${esc(g.name)}</div>
+          <div class="donut-rows">
+            <div class="donut-row">
+              <span class="amt-field">
+                <span class="amt-sign">$</span>
+                <input class="inline-input" type="text" inputmode="decimal" value="${fmtNum(g.current)}"
+                       onblur="goalUpdateAmount(${g.id},'current',this.value)"
+                       style="font-size:11px;width:${fmtNum(g.current).length}ch">
+              </span>
+              <span class="donut-row-label">Contributed</span>
+            </div>
+            <div class="donut-row">
+              <span class="donut-row-val">${fmt(tgt)}</span>
+              <span class="donut-row-label">Target</span>
+            </div>
           </div>
         </div>`;
-      }).join('')}`;
+      }).join('')}
+    </div>`;
 
-    requestAnimationFrame(() => {
-      document.querySelectorAll('.goal-fill[data-target]').forEach(bar => {
-        requestAnimationFrame(() => { bar.style.width = bar.dataset.target + '%'; });
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.donut-arc[data-offset]').forEach(arc => {
+      requestAnimationFrame(() => {
+        arc.style.transition = 'stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1)';
+        arc.style.strokeDashoffset = arc.dataset.offset;
       });
     });
-  }
+  });
 }
 
-function goalEdit()   { editing.goals = true; renderGoals(); }
-function goalCancel() { reload(); editing.goals = false; renderGoals(); }
+function goalUpdateAmount(id, field, value) {
+  const g = D.goals.find(g => g.id === id);
+  if (!g) return;
+  g[field] = parseNum(value);
+  save(); renderGoals(); updateStats();
+}
+
+function goalEdit()   { flipCard('goals-card', () => { editing.goals = true;  renderGoals(); }); }
+function goalCancel() { flipCard('goals-card', () => { reload(); editing.goals = false; renderGoals(); }); }
 
 function goalSyncEdits() {
-  document.querySelectorAll('#goals-rows [data-goal-id]').forEach(row => {
+  document.querySelectorAll('#goals-rows tr[data-goal-id]').forEach(row => {
     const id = parseInt(row.dataset.goalId);
     const g  = D.goals.find(g=>g.id===id);
     if (!g) return;
     row.querySelectorAll('[data-f]').forEach(el => {
       const f = el.dataset.f;
-      if      (f==='completed')         g[f] = el.checked;
-      else if (f==='current'||f==='goal') g[f] = parseFloat(el.value)||0;
-      else                               g[f] = el.value;
+      g[f] = f==='goal' ? parseNum(el.value) : el.value;
     });
   });
 }
-function goalSave()   { goalSyncEdits(); save(); editing.goals = false; renderAll(); }
-function goalDelete(id) {
-  goalSyncEdits();
-  D.goals = D.goals.filter(g=>g.id!==id);
-  renderGoals();
-}
+function goalSave() { goalSyncEdits(); save(); flipCard('goals-card', () => { editing.goals = false; renderGoals(); updateStats(); }); }
+function goalDelete(id) { goalSyncEdits(); D.goals = D.goals.filter(g=>g.id!==id); renderGoals(); }
 function goalAdd() {
   goalSyncEdits();
   D.goals.push({id:nextId(D.goals),name:'',current:0,goal:0,completed:false});
@@ -720,55 +882,50 @@ function goalAdd() {
 function renderCal() {
   const el = document.getElementById('cal-card');
   if (!el) return;
-  const cal = D.calendar;
-  const netIncome = (parseFloat(cal.numPaychecks)||0) * (parseFloat(cal.netIncomePerCheck)||0);
-  const yearRem   = netIncome - (parseFloat(cal.expectedExpenses)||0);
+  const c = calcCal();
 
   if (editing.cal) {
     el.innerHTML = `
-      <div class="card-hdr"><span class="card-title">Calendar Year — Income</span></div>
+      <div class="card-hdr"><span class="card-title">Remaining Income</span></div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        ${[
-          ['Next Payroll',       'date',   'nextPayroll',       cal.nextPayroll,       '160px'],
-          ['# of Paychecks',    'number', 'numPaychecks',      cal.numPaychecks,      '90px'],
-          ['Net Income / Check','number', 'netIncomePerCheck', cal.netIncomePerCheck, '120px'],
-          ['Expected Expenses', 'number', 'expectedExpenses',  cal.expectedExpenses,  '120px'],
-        ].map(([label,type,id,val,w])=>`
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-          <label style="font-size:13px;color:var(--text-2);white-space:nowrap">${label}</label>
-          <input class="e-input" type="${type}" id="cal-${id}" value="${esc(val)}" style="width:${w};text-align:right">
-        </div>`).join('')}
+          <label style="font-size:13px;color:var(--text-2);white-space:nowrap">Paycheck Amount</label>
+          <span class="e-money" style="width:130px"><span class="e-money-sign">$</span><input class="e-money-input" type="text" inputmode="decimal" id="cal-paycheck" value="${fmtNum(D.calendar.netIncomePerCheck)}"></span>
+        </div>
+        <div style="font-size:11px;color:var(--text-2);font-style:italic;line-height:1.4">
+          Next payroll, # of paychecks, and expected expenses are calculated automatically.
+        </div>
       </div>
       <div class="btn-row">
         <button class="cancel-btn" onclick="calCancel()">Cancel</button>
         <button class="save-btn"   onclick="calSave()">Save</button>
       </div>`;
   } else {
-    const isNeg = yearRem < 0;
+    const isNeg = c.remaining < 0;
     el.innerHTML = `
       <div class="card-hdr">
-        <span class="card-title">Calendar Year — Income</span>
+        <span class="card-title">Remaining Income</span>
         <button class="edit-btn" onclick="calEdit()">Edit</button>
       </div>
       <div class="cal-row">
         <span class="cal-label">Next Payroll</span>
-        <span class="cal-val">${esc(fmtDate(cal.nextPayroll))}</span>
+        <span class="cal-val">${fmtDateObj(c.nextPayroll)}</span>
       </div>
       <div class="cal-row">
         <span class="cal-label"># of Paychecks</span>
-        <span class="cal-val">${cal.numPaychecks}</span>
+        <span class="cal-val">${c.numChecks}</span>
       </div>
       <div class="cal-row">
         <span class="cal-label">Net Income</span>
-        <span class="cal-val">${fmt(netIncome)}</span>
+        <span class="cal-val">${fmt(c.netIncome)}</span>
       </div>
       <div class="cal-row">
         <span class="cal-label">Expected Expenses</span>
-        <span class="cal-val">${fmt(cal.expectedExpenses)}</span>
+        <span class="cal-val">${fmt(c.expenses)}</span>
       </div>
       <div class="cal-highlight ${isNeg?'is-neg':''}">
         <span class="cal-hl-label">Remaining</span>
-        <span class="cal-hl-val">${isNeg?'−':''}${fmt(yearRem)}</span>
+        <span class="cal-hl-val">${isNeg?'−':''}${fmt(c.remaining)}</span>
       </div>`;
   }
 }
@@ -776,18 +933,13 @@ function renderCal() {
 function calEdit()   { editing.cal = true; renderCal(); }
 function calCancel() { reload(); editing.cal = false; renderCal(); }
 function calSave() {
-  D.calendar.nextPayroll       = document.getElementById('cal-nextPayroll').value;
-  D.calendar.numPaychecks      = parseFloat(document.getElementById('cal-numPaychecks').value)||0;
-  D.calendar.netIncomePerCheck = parseFloat(document.getElementById('cal-netIncomePerCheck').value)||0;
-  D.calendar.expectedExpenses  = parseFloat(document.getElementById('cal-expectedExpenses').value)||0;
+  D.calendar.netIncomePerCheck = parseNum(document.getElementById('cal-paycheck').value);
   save(); editing.cal = false; renderAll();
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
-function renderAll() {
-  renderCF(); renderBills(); renderGoals(); renderCal(); updateStats();
-}
+function renderAll() { renderCF(); renderBills(); renderGoals(); renderCal(); updateStats(); }
 
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('en-US', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
