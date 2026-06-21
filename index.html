@@ -469,10 +469,28 @@ body {
 </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── DATA ─────────────────────────────────────────────────────────────────────
 
 const KEY = 'bdgt-v3';
+
+// ── SUPABASE (cloud sync) ────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://ywrwcwgmnvwtkbrufaig.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3cndjd2dtbnZ3dGticnVmYWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNTY5NjIsImV4cCI6MjA5NzYzMjk2Mn0.F8j9c8wHxI8ur8u9Px4h9Q_jGHO7gl7DzDDzFuUVnLE';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let _saveTimer = null;
+function pushToCloud() {
+  // Debounce so a burst of edits results in a single network write.
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(async () => {
+    const { error } = await sb.from('budget')
+      .update({ data: D, updated_at: new Date().toISOString() })
+      .eq('id', 1);
+    if (error) console.error('Cloud save failed:', error);
+  }, 600);
+}
 
 const DEFAULTS = {
   cashFlow: [
@@ -528,7 +546,7 @@ let D = (() => {
 const editing = {cf: false, bills: false, goals: false, cal: false};
 
 function clone(x) { return JSON.parse(JSON.stringify(x)); }
-function save()   { localStorage.setItem(KEY, JSON.stringify(D)); }
+function save()   { localStorage.setItem(KEY, JSON.stringify(D)); pushToCloud(); }
 function reload() { try { const s = localStorage.getItem(KEY); D = s ? JSON.parse(s) : clone(DEFAULTS); } catch { D = clone(DEFAULTS); } }
 function nextId(arr) { return arr.reduce((m,i) => Math.max(m,i.id),0) + 1; }
 
@@ -945,5 +963,19 @@ document.getElementById('hdr-date').textContent = new Date().toLocaleDateString(
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
 });
 
-renderAll();
+renderAll();  // instant render from localStorage
+
+// Then pull the latest from the cloud and re-render if a saved copy exists.
+(async () => {
+  const { data, error } = await sb.from('budget').select('data').eq('id', 1).single();
+  if (error) { console.error('Cloud load failed:', error); return; }
+  if (data && data.data && Object.keys(data.data).length) {
+    D = data.data;
+    localStorage.setItem(KEY, JSON.stringify(D));
+    renderAll();
+  } else {
+    // First run: cloud row is empty — push current local data up.
+    pushToCloud();
+  }
+})();
 </script>
