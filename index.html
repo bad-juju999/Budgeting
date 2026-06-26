@@ -131,7 +131,22 @@ body {
 /* ── GRID ── */
 .main-grid   { display: grid; grid-template-columns: 35% 1fr; gap: 16px; margin-bottom: 16px; perspective: 1600px; }
 .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; perspective: 1600px; }
+.notes-grid  { margin-top: 16px; }
 #bills-card, #goals-card { transform-style: preserve-3d; backface-visibility: hidden; }
+
+/* ── NOTES ── */
+.notes-area {
+  width: 100%; box-sizing: border-box; min-height: 140px; resize: vertical;
+  background: transparent; border: none; outline: none;
+  font-family: inherit; font-size: 14px; line-height: 1.7; color: var(--text);
+  padding: 0; margin: 0;
+}
+.notes-area::placeholder { color: var(--text-2); opacity: 0.7; }
+.notes-saved {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--text-2); opacity: 0; transition: opacity 0.2s;
+}
+.notes-saved.show { opacity: 0.8; }
 
 /* ── CARD ── */
 .card {
@@ -467,6 +482,9 @@ body {
   <div class="card" id="bills-card"></div>
   <div class="card" id="cal-card"></div>
 </div>
+<div class="notes-grid">
+  <div class="card" id="notes-card"></div>
+</div>
 </main>
 </div>
 
@@ -535,6 +553,7 @@ const DEFAULTS = {
     {id:3,name:'Coast FIRE Calc',       url:''},
     {id:4,name:'Compound Interest Calc',url:''},
   ],
+  notes: '',
 };
 
 const GOAL_COLORS = ['#E25C3A','#1C1C1A','#E8895C','#C9492B','#EF9E7E','#B23E22'];
@@ -956,9 +975,51 @@ function calSave() {
   save(); editing.cal = false; renderAll();
 }
 
+// ── NOTES ────────────────────────────────────────────────────────────────────
+
+function renderNotes() {
+  const el = document.getElementById('notes-card');
+  if (!el) return;
+  if (typeof D.notes !== 'string') D.notes = '';
+  // Don't re-render (and wipe the cursor) while the user is typing in this card.
+  if (el.contains(document.activeElement)) return;
+  el.innerHTML = `
+    <div class="card-hdr">
+      <span class="card-title">Notes</span>
+      <span class="notes-saved" id="notes-saved">Saved</span>
+    </div>
+    <textarea class="notes-area" id="notes-area" placeholder="• Jot down anything…"
+              oninput="notesInput(this)" onkeydown="notesKey(event,this)"></textarea>`;
+  el.querySelector('#notes-area').value = D.notes;
+}
+
+// Auto-bullet a fresh, empty notes field so the first line starts as a bullet.
+function notesInput(ta) {
+  if (ta.value && !/^\s*[•\-*]/.test(ta.value)) {
+    const at = ta.selectionStart;
+    ta.value = '• ' + ta.value;
+    ta.selectionStart = ta.selectionEnd = at + 2;
+  }
+  D.notes = ta.value;
+  save();
+  const tag = document.getElementById('notes-saved');
+  if (tag) { tag.classList.add('show'); clearTimeout(tag._t); tag._t = setTimeout(() => tag.classList.remove('show'), 1200); }
+}
+
+// On Enter, start the new line with a bullet for quick list entry.
+function notesKey(e, ta) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    const s = ta.selectionStart, en = ta.selectionEnd;
+    ta.value = ta.value.slice(0, s) + '\n• ' + ta.value.slice(en);
+    ta.selectionStart = ta.selectionEnd = s + 3;
+    notesInput(ta);
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 
-function renderAll() { renderCF(); renderBills(); renderGoals(); renderCal(); updateStats(); }
+function renderAll() { renderCF(); renderBills(); renderGoals(); renderCal(); renderNotes(); updateStats(); }
 
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('en-US', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
